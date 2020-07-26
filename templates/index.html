@@ -119,19 +119,19 @@
             top: 0;
             left: 0;
             overflow-x: hidden;
-            transition: 0.3s;
+            transition: 0.1s;
             padding-top: 60px;
             overflow-wrap: break-word;
         }
 
-        .left-sidebar:hover {
+        .left-sidebar.opened {
             opacity: 1;
             text-align: left;
             padding: 8px 8px 8px 32px;
             text-decoration: none;
             color: #818181;
             display: block;
-            width: 25%;
+            width: 80%;
             background-color: #222;
             word-wrap: break-word;
         }
@@ -145,18 +145,18 @@
             top: 0;
             right: 0;
             overflow-x: hidden;
-            transition: 0.3s;
+            transition: 0.1s;
             padding-top: 60px;
         }
 
-        .right-sidebar:hover {
+        .right-sidebar.opened {
             opacity: 1;
             background-color: #222;
             padding: 8px 8px 8px 32px;
             text-decoration: none;
             color: #818181;
             display: block;
-            width: 30%;
+            width: 40%;
             word-wrap: break-word;
         }
 
@@ -172,42 +172,61 @@
             margin: 1px 10px;
         }
 
-        .bg-dark{
+        .bg-dark {
             background-color: #333 !important;
         }
     </style>
     <!--<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />-->
 </head>
 <body class="text-center">
-<div class="left-sidebar">
-    <h1>Team Planning</h1>
-    <p>Modify the area to change places by clicking in a case and then setting a new value. (leave empty if you
-        want)</p>
-    <p>Manage your team (add and remove team member)</p>
-    <p>Display a team member card</p>
+<div style="color:white" class="left-sidebar">
+    <h4 style="margin:50px" class="text-center">Skills grid</h4>
+    <table class="grid" style="width: 80%">
+        <tbody>
+        {% set count = namespace(value=-1) %}
+        <tr>
+            {% for i in spots %}
+                {% if i == 1 %}
+                    <td></td>
+                    <td>P{{ i }}</td>
+                {% else %}
+                    <td>P{{ i }}</td>
+                {% endif %}
+            {% endfor %}
+        </tr>
+        {% for member in team %}
+            {% set count_for_member = namespace(value=-1) %}
+            {% if member.0|length %}
+                <tr>
+                    {% for i in range(15) %}
+                        {% if i == 0 %}
+                            <td>{{ member.0 }}</td>
+                        {% else %}
+                            {% set count.value = count.value + 1 %}
+                            {% set count_for_member.value = count_for_member.value + 1 %}
+                            <td id="{{ count_for_member.value }}/{{ member.0 }}">{{ skill_index }}{{ member.1[count_for_member.value] }}</td>
+                        {% endif %}
+                    {% endfor %}
+                </tr>
+            {% endif %}
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
-<div class="right-sidebar">
+<div style="color:white" class="right-sidebar">
     <form>
-        <p>Team</p>
+        <h4 style="margin:50px">Team</h4>
         <div class="input-group mb-3">
-            <label for="member-input">
-                <input id="member-input" name="member-input" type="text" class="form-control">
-            </label>
-            <div class="input-group-append">
-                <button id="member-action" class="btn btn-outline-secondary" type="button"></button>
-            </div>
+            <input id="member-input" name="member-input" type="text" class="form-control">
+            <button id="member-action" class="btn btn-outline-secondary" type="button"></button>
         </div>
         <select class="form-control" id="team-selector" size="1">
             <option value="" selected disabled hidden>Team member list</option>
             {% for member in team %}
                 {% if member|length %}
-                    <option class="form-control">{{ member }}</option>
+                    <option class="form-control">{{ member.0 }}</option>
                 {% endif %}
             {% endfor %}
-        </select>
-        <select class="form-control" id="file-selector" size="1">
-            <option value="" selected disabled hidden>File list</option>
-            <option class="form-control">Team members</option>
         </select>
     </form>
 
@@ -218,10 +237,13 @@
         <div class="inner">
             <h3 class="masthead-brand">Team planning</h3>
             <nav class="nav nav-masthead justify-content-center">
-                 <select id="page_status" class="navbar bg-dark text-light">
-                     <option value="" selected disabled hidden>Menu</option>
+                <select style="z-index:100" id="page_status" class="navbar bg-dark text-light">
+                    <option selected>Accueil</option>
+                    <option>manage team</option>
+                    <option>manage skills</option>
                     <option>create shift</option>
-                     <option>modify area</option>
+                    <option>validate shift</option>
+                    <option>modify area</option>
                 </select>
             </nav>
         </div>
@@ -229,33 +251,34 @@
 
     <main role="main" class="inner cover">
         <h1 class="cover-heading">Organize your team</h1>
-        <p class="lead"><small>This application has been to help Amélia Lefin on her team management task</small></p>
+        <p class="lead"><small>This application has been made to help Amélia Lefin on her team management task</small>
+        </p>
     </main>
     <div>
-    <table>
-        <tbody>
-        {% set count = namespace(value=-1) %}
-        {% for a in range(16) %}
-            <tr>
-                {% for i in range(16) %}
-                    <td>
-                        {% set count.value = count.value + 1 %}
-                        {% if places[count.value]|length > 0 %}
-                            <div style="background: white; color:black;" id={{ count.value }}>
-                                P{{ places[count.value] }}</div>
-                            <a class="tooltiP">
-                                {% set number = places[count.value]|int %}
-                                <span>{{ shift[number] }}</span>
-                            </a>
-                        {% else %}
-                            <div id={{ count.value }}>{{ places[count.value] }}</div>
-                        {% endif %}
-                    </td>
-                {% endfor %}
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+        <table class="area">
+            <tbody>
+            {% set count = namespace(value=-1) %}
+            {% for a in range(16) %}
+                <tr>
+                    {% for i in range(16) %}
+                        <td>
+                            {% set count.value = count.value + 1 %}
+                            {% if places[count.value]|length > 0 %}
+                                <div style="background: white; color:black;" id={{ count.value }}>
+                                    P{{ places[count.value] }}</div>
+                                <a class="tooltiP">
+                                    {% set number = places[count.value]|int %}
+                                    <span>{{ shift[number - 1] }}</span>
+                                </a>
+                            {% else %}
+                                <div id={{ count.value }}>{{ places[count.value] }}</div>
+                            {% endif %}
+                        </td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
     <footer class="mastfoot mt-auto">
         <div class="inner">
@@ -271,11 +294,23 @@
             crossorigin="anonymous"></script>
     <script type="text/javascript">$SCRIPT_ROOT = {{ request.script_root|tojson|safe }};</script>
     <script>
+        function save_menu_option(){
+            $.getJSON($SCRIPT_ROOT + '/save_menu_option', {menu_option:$(`#page_status`).val()}, console.log("Saving menu option"));
+        }
+
+        $(function() {
+            let menu_option = "{{ menu_option }}";
+            $('#page_status').val(menu_option);
+            handle_menu_option();
+        });
+
         $("#member-action").html("Add");
 
-        $('#page_status').on('change', function () {
-            function create_shift() {
+        function handle_menu_option() {
 
+            if ($(`#page_status`).val() === "create shift") {
+                $(`.left-sidebar`).removeClass('opened');
+                $(`.right-sidebar`).removeClass('opened');
                 $.getJSON($SCRIPT_ROOT + '/create_shift', {},
                     function (pos) {
                         //Debug
@@ -284,20 +319,34 @@
                         if (pos !== 'failed') {
                             //Debug
                             console.debug("Create shift succeed");
+                            alert("Shift has been created");
                         } else {
                             //Warn
                             console.debug("Create shift failed");
-                        }
-                        location.reload()
-                });
-            }
+                            alert("Shift creation failed");
 
-            if($('#page_status').val() === "create shift"){
-                create_shift();
-                setTimeout(() => {
-                    if(confirm("Do you want to validate this shift ?")){
-                        alert("Validate the shift!");
-                        $.getJSON($SCRIPT_ROOT + '/validate_shift', {},
+                        }
+                        $('#page_status').val("Accueil");
+                        save_menu_option();
+                        location.reload();
+                    });
+
+            } else if($("#page_status").val() === "Accueil") {
+                $(`.left-sidebar`).removeClass('opened');
+                $(`.right-sidebar`).removeClass('opened');
+            } else if($("#page_status").val() === "manage skills") {
+                $(`.left-sidebar`).addClass('opened');
+                $(`.right-sidebar`).removeClass('opened');
+            } else if ($(`#page_status`).val() === "manage team"){
+                $(`.right-sidebar`).addClass('opened');
+                $(`.left-sidebar`).removeClass('opened');
+            } else if ($(`#page_status`).val() === "modify area") {
+                $(`.left-sidebar`).removeClass('opened');
+                $(`.right-sidebar`).removeClass('opened');
+                alert("If you need to change the area just click in a case to set a new place.")
+            } else if ($(`#page_status`).val() === "validate shift"){
+                if(confirm("Do you want to validate this shift")) {
+                    $.getJSON($SCRIPT_ROOT + '/validate_shift', {},
                         function (pos) {
                             //Debug
                             console.debug("Using validate shift personnal API getting: " + pos);
@@ -305,67 +354,89 @@
                             if (pos !== 'failed') {
                                 //Debug
                                 console.debug("Validate shift succeed");
+                                alert("Shift has been validated");
+
                             } else {
                                 //Warn
                                 console.debug("Validate shift failed");
+                                alert("Shift validation failed");
+
                             }
-                            location.reload()
-                         });
-                    }
-                }, 2000);
-
-            } else if($('#page_status').val() === "modify area"){
-                alert("If you need to change the area just click in a case to set a new place.")
+                        });
+                }
             }
+        }
 
+        $('#page_status').on('change', function () {
+
+            save_menu_option();
+            handle_menu_option();
         });
 
-        $('#team-selector').on('change', function () {
+        $(`#team-selector`).on('change', function () {
             $("#member-input").val(this.value);
             $("#member-action").html("Remove");
 
         });
 
-        $('#member-input').bind('input', function () {
+        $(`#member-input`).bind('input', function () {
             $("#member-action").html("Add");
+        });
+
+        function add_member(member) {
+            $.getJSON($SCRIPT_ROOT + '/add_member', {member_name: member},
+                function (pos) {
+                    //Debug
+                    console.debug("Using set member personnal API getting: " + pos);
+
+                    if (pos !== 'failed') {
+                        //Debug
+                        console.debug("Set team member succeed");
+                        alert("A new team member has been added");
+
+                    } else {
+                        //Warn
+                        console.debug("Set team member failed");
+                        alert("Team member addition has been failed");
+                    }
+                    $.get('', function(data) {
+                        $(document.body).html(data);
+                    });
+                });
+        }
+
+        function remove_member(member) {
+            $.getJSON($SCRIPT_ROOT + '/remove_member', {member_name: member},
+                function (pos) {
+                    //Debug
+                    console.debug("Using set member personnal API getting: " + pos);
+
+                    if (pos !== 'failed') {
+                        //Debug
+                        console.debug("Removing team member succeed");
+                        alert("Removing team member succeed");
+
+                    } else {
+                        //Warn
+                        console.debug("Removing team member failed");
+                        alert("Removing team member failed");
+                    }
+                    $.get('', function(data) {
+                        $(document.body).html(data);
+                    });
+                });
+        }
+
+        $(document).on('keypress',function(e) {
+            if(e.which === 13) {
+                if ($('#member-input').val().length !== 0) {
+                      add_member($("#member-input").val());
+                }
+            }
         });
 
         $('#member-action').click(function () {
             let action = $(this).html();
-
-            function add_member(member) {
-                $.getJSON($SCRIPT_ROOT + '/add_member', {member_name: member},
-                    function (pos) {
-                        //Debug
-                        console.debug("Using set member personnal API getting: " + pos);
-
-                        if (pos !== 'failed') {
-                            //Debug
-                            console.debug("Set team member succeed");
-                        } else {
-                            //Warn
-                            console.debug("Set team member failed");
-                        }
-                        location.reload()
-                    });
-            }
-
-            function remove_member(member) {
-                $.getJSON($SCRIPT_ROOT + '/remove_member', {member_name: member},
-                    function (pos) {
-                        //Debug
-                        console.debug("Using set member personnal API getting: " + pos);
-
-                        if (pos !== 'failed') {
-                            //Debug
-                            console.debug("Set team member succeed");
-                        } else {
-                            //Warn
-                            console.debug("Set team member failed");
-                        }
-                        location.reload()
-                    });
-            }
 
             if (action === "Add") {
                 add_member($("#member-input").val());
@@ -387,35 +458,65 @@
                         //Warn
                         console.debug("Set team member failed");
                     }
-                    location.reload()
+                    $.get('', function(data) {
+                        $(document.body).html(data);
+                    });
                 });
         }
 
         // get a reference to the table.xml
-        var table = document.querySelector('table');
+        var grid = document.querySelector('.grid');
+
+        // listen for a click
+        grid.addEventListener('click', function (ev) {
+            $.getJSON($SCRIPT_ROOT + '/set_skill', {skill_id: ev.target.id},
+                function (pos) {
+                    //Debug
+                    console.debug("Using set skill personnal API getting: " + pos);
+
+                    if (pos !== 'failed') {
+                        //Debug
+                        console.debug("Set skill succeed");
+                    } else {
+                        //Warn
+                        console.debug("Set skill failed");
+                    }
+                    $.get('', function(data) {
+                        $(document.body).html(data);
+                    });
+                });
+        });
+
+        // get a reference to the table.xml
+        var table = document.querySelector('.area');
 
         // listen for a click
         table.addEventListener('click', function (ev) {
 
             // get the event targets ID
             var serviceID = ev.target.id;
-            if($("#page_status").val() === "modify area"){
+            if ($("#page_status").val() === "modify area") {
                 if (confirm("Do you want to modify the area ?")) {
-                $.getJSON($SCRIPT_ROOT + '/set_position', {place_id: serviceID, place_name: prompt("Enter a value")},
-                    function (pos) {
-                        //Debug
-                        console.debug("Using get position personnal API getting: " + pos);
-
-                        if (pos !== 'failed') {
+                    $.getJSON($SCRIPT_ROOT + '/set_position', {
+                            place_id: serviceID,
+                            place_name: prompt("Enter a value")
+                        },
+                        function (pos) {
                             //Debug
-                            console.debug("Set position succeed");
-                        } else {
-                            //Warn
-                            console.debug("Set position failed");
-                        }
-                        location.reload()
-                    });
-            }
+                            console.debug("Using get position personnal API getting: " + pos);
+
+                            if (pos !== 'failed') {
+                                //Debug
+                                console.debug("Set position succeed");
+                            } else {
+                                //Warn
+                                console.debug("Set position failed");
+                            }
+                            $.get('', function(data) {
+                                $(document.body).html(data);
+                            });
+                        });
+                }
             }
 
 
