@@ -397,7 +397,7 @@ def get_menu_option():
         if menu_option and isinstance(menu_option, list):
             menu_option = menu_option[0]
         else:
-            menu_option = "Accueil"
+            menu_option = "0"
     return menu_option
 
 

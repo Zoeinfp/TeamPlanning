@@ -238,12 +238,12 @@
             <h3 class="masthead-brand">Team planning</h3>
             <nav class="nav nav-masthead justify-content-center">
                 <select style="z-index:100" id="page_status" class="navbar bg-dark text-light">
-                    <option selected>Accueil</option>
-                    <option>manage team</option>
-                    <option>manage skills</option>
-                    <option>create shift</option>
-                    <option>validate shift</option>
-                    <option>modify area</option>
+                    <option value="0" selected>Home</option>
+                    <option value="1">manage team</option>
+                    <option value="2">manage skills</option>
+                    <option value="3">create shift</option>
+                    <option value="4">validate shift</option>
+                    <option value="5">modify area</option>
                 </select>
             </nav>
         </div>
@@ -308,7 +308,7 @@
 
         function handle_menu_option() {
 
-            if ($(`#page_status`).val() === "create shift") {
+            if ($(`#page_status`).val() === "3") {
                 $(`.left-sidebar`).removeClass('opened');
                 $(`.right-sidebar`).removeClass('opened');
                 $.getJSON($SCRIPT_ROOT + '/create_shift', {},
@@ -326,25 +326,25 @@
                             alert("Shift creation failed");
 
                         }
-                        $('#page_status').val("Accueil");
+                        $('#page_status').val("0");
                         save_menu_option();
                         location.reload();
                     });
 
-            } else if($("#page_status").val() === "Accueil") {
+            } else if($("#page_status").val() === "0") {
                 $(`.left-sidebar`).removeClass('opened');
                 $(`.right-sidebar`).removeClass('opened');
-            } else if($("#page_status").val() === "manage skills") {
+            } else if($("#page_status").val() === "2") {
                 $(`.left-sidebar`).addClass('opened');
                 $(`.right-sidebar`).removeClass('opened');
-            } else if ($(`#page_status`).val() === "manage team"){
+            } else if ($(`#page_status`).val() === "1"){
                 $(`.right-sidebar`).addClass('opened');
                 $(`.left-sidebar`).removeClass('opened');
-            } else if ($(`#page_status`).val() === "modify area") {
+            } else if ($(`#page_status`).val() === "5") {
                 $(`.left-sidebar`).removeClass('opened');
                 $(`.right-sidebar`).removeClass('opened');
                 alert("If you need to change the area just click in a case to set a new place.")
-            } else if ($(`#page_status`).val() === "validate shift"){
+            } else if ($(`#page_status`).val() === "4"){
                 if(confirm("Do you want to validate this shift")) {
                     $.getJSON($SCRIPT_ROOT + '/validate_shift', {},
                         function (pos) {
